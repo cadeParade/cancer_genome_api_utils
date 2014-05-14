@@ -33,8 +33,6 @@ tcga_combine_death_and_last_followup = function(d, l){
       }
       #otherwise return days to death
       else{
-        print(i)
-        print(paste(d[i], l[i]))
         n[i] = d[i]
       }
     }
@@ -78,6 +76,9 @@ tcga_pathologic_stage_cleaned = function(stage_col){
 #for use in kaplan meier plots
 high_or_low = function(cutoff, margin, vec){
   h_o_l = sapply(vec, function(x){
+    if(is.na(x)){
+      return(NA)
+    }
     if(x >= cutoff + margin){
       return('high')
     }

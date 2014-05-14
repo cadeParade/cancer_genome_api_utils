@@ -30,8 +30,8 @@ cbio_get_profile_id = function(con, study_id, profile_type){
   return(single_profile_id)
 }
 
-cbio_base_fetch_data = function(con, study_id, data_type, genes, case_type = 'tcga_all'){
-# cbio_base_fetch_data = function(con, study_id, data_type, genes, case_type = '3way_complete'){
+# cbio_base_fetch_data = function(con, study_id, data_type, genes, case_type = 'tcga_all'){
+cbio_base_fetch_data = function(con, study_id, data_type, genes, case_type = '3way_complete'){
   case_id = cbio_get_sample_set_id(con, study_id, case_type)
   profile_id = cbio_get_profile_id(con, study_id, data_type)
   d = getProfileData(con, genes, profile_id, case_id)[-1,]
@@ -41,7 +41,7 @@ cbio_base_fetch_data = function(con, study_id, data_type, genes, case_type = 'tc
 
 
 # Wrappers for specific data types from cbio_portal
-cbio_clinical = function(con, study_id, case_type = 'tcga_all'){
+cbio_clinical = function(con, study_id, case_type = '3way_complete'){
   case_id = cbio_get_sample_set_id(con, study_id, case_type)
   clin = getClinicalData(con, case_id)
   return(clin)
@@ -68,12 +68,16 @@ cbio_mrna = function(con, study_id, genes){
 
 
 # Compiling all datatypes
-cbio_fetch_all = function(cancer_type, genes, ab_names, study_id_num=1){
-  source('tcga_utils.R')
+cbio_fetch_all = function(cancer_type, genes, ab_names){
+  library(cgdsr)
+  library(stringr)
+  library(plyr)
+  source('/taylorlab/scripts/R/tcga_utils.R')
+  study_id_num = set_study_id_num(cancer_type)
   cbio_con =  make_cbio_connection()
   study_id = cbio_get_tcga_studies(cbio_con, cancer_type)
   study_id = multiple_study_ids_warning(cancer_type, study_id, study_id_num)
-  possible_cases = cbio_get_sample_sets(con, study_id)
+  possible_cases = cbio_get_sample_sets(cbio_con, study_id)
 
   rppa = add_tcga_id_col(cbio_rppa(cbio_con, study_id, ab_names))
   muts = add_tcga_id_col(cbio_muts(cbio_con, study_id, genes))
@@ -90,6 +94,12 @@ cbio_fetch_all = function(cancer_type, genes, ab_names, study_id_num=1){
 }
 
 # Helper functions
+set_study_id_num = function(cancer_type){
+  if(cancer_type == 'luad' | cancer_type == 'lusc' | cancer_type == 'coadread'){
+    return(2)
+  }
+  else{return(1)}
+}
 
 make_cbio_connection = function(){
   return(CGDS("http://www.cbioportal.org/public-portal/"))
@@ -108,7 +118,7 @@ multiple_study_ids_warning = function(cancer_type, study_id, study_id_num){
 }
 
 protein_antibody_name_warning = function(){
-  warning('if your protein data is incomplete, check http://bit.ly/QGLSvD for possible antibody/gene names.')  
+  warning('if your protein data is incomplete, check /tayorlab/data/tcga/RPPA/full_ab_list.txt for possible antibody/gene names.')  
 }
 
 check_clin = function(clin, study_id){
