@@ -1,6 +1,4 @@
-library(cgdsr)
-library(stringr)
-library(plyr)
+
 
 
 #Wrappers for base functions
