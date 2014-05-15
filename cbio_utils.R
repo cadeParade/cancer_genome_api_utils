@@ -70,7 +70,7 @@ cbio_fetch_all = function(cancer_type, genes, ab_names){
   library(cgdsr)
   library(stringr)
   library(plyr)
-  source('/taylorlab/scripts/R/tcga_utils.R')
+  source('/taylorlab/scripts/R/cancer_genome_api_utils/tcga_utils.R')
   study_id_num = set_study_id_num(cancer_type)
   cbio_con =  make_cbio_connection()
   study_id = cbio_get_tcga_studies(cbio_con, cancer_type)

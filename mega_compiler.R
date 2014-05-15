@@ -12,8 +12,8 @@
 
 # output table 
 # barcode   long_barcode    g1_exp      g2_exp     clin_col1_cleaned    clin_col2_cleaned
-source('/taylorlab/scripts/R/compile_all_exp_data_for_cancer_type.R')
-source('/taylorlab/scripts/R/tcga_utils.R')
+source('/taylorlab/scripts/R/cancer_genome_api_utils/compile_all_exp_data_for_cancer_type.R')
+source('/taylorlab/scripts/R/cancer_genome_api_utils/tcga_utils.R')
 
 load_clinical_table = function(cancer_type){
   clin_dir = paste('/taylorlab/data/tcga/tcga_rna/cancer_type/', cancer_type, sep='')
