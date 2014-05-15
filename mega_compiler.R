@@ -31,7 +31,12 @@ subset_and_clean_clinical_data = function(clin, cols_to_keep){
     clin[ , col_header ] = tcga_clean_days_to_cols(clin[ , col_header ])
   }
 
-  clin$pathologic_stage_cleaned = tcga_pathologic_stage_cleaned(clin$pathologic_stage)
+  if(is.null(clin$pathologic_stage)){
+    clin$pathologic_stage_cleaned = tcga_pathologic_stage_cleaned(clin$pathologic_T)
+  }
+  else{
+    clin$pathologic_stage_cleaned = tcga_pathologic_stage_cleaned(clin$pathologic_stage)
+   } 
 
   clin$days_to_death_or_followup = tcga_combine_death_and_last_followup(clin$days_to_death, clin$days_to_last_followup) #TODO make ths more generic...
   id_col = which(colnames(clin) == 'bcr_patient_barcode')
@@ -61,12 +66,22 @@ gene_sub_colnames = function(gene_sub){
   return(gene_sub[-1, ])
 }
 
-make_table = function(cancer_type, genes, out_dir = getwd(), barcodes = 'all', clin_cols_to_keep = c('days_to_death', 'days_to_last_followup', 'pathologic_stage', 'age_at_initial_pathologic_diagnosis', 'vital_status')){
+make_table = function(cancer_type, genes, out_dir = getwd(), all_exp_file = NA, barcodes = 'all', clin_cols_to_keep = c('days_to_death', 'days_to_last_followup', 'pathologic_stage', 'age_at_initial_pathologic_diagnosis', 'vital_status')){
 
+  #prad stage grading is different than ALL THE OTHERS. THANKS PRAD.
+  if(cancer_type == 'prad'){
+    print('cancer type prad')
+    clin_cols_to_keep  = str_replace(clin_cols_to_keep, 'pathologic_stage', 'pathologic_T')
+    print(clin_cols_to_keep)
+  }
+  if(is.na(all_exp_file)){
+    # compile all tables for cancer type
+    all_exp_for_cancer = compile_sample_data(cancer_type, paste(out_dir, '/all_data_for_', cancer_type, '.txt', sep=''), return_table = T)  
+  }
+  else{
+    all_exp_for_cancer = read.table(all_exp_file, sep='\t', header = T, stringsAsFactors = F)
+  }
 
-  # compile all tables for cancer type
-  all_exp_for_cancer = compile_sample_data(cancer_type, paste(out_dir, '/all_data_for_', cancer_type, '.txt', sep=''), return_table = T)  
-  
   gene_sub = subset_for_genes(all_exp_for_cancer, genes)
   gene_sub = gene_sub_colnames(gene_sub)
   gene_sub = numeric_and_tpm(gene_sub)
