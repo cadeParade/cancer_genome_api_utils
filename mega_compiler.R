@@ -22,6 +22,16 @@ load_clinical_table = function(cancer_type){
   return(clin)
 }
 
+check_clin_cols = function(cancer_type, clin_cols_to_keep){
+  #prad stage grading is different than ALL THE OTHERS. THANKS PRAD.
+  if(cancer_type == 'prad'){
+    clin_cols_to_keep  = str_replace(clin_cols_to_keep, 'pathologic_stage', 'pathologic_T')
+  }
+  else if(cancer_type == 'gbm' | cancer_type == 'lgg'){
+    clin_cols_to_keep = c('days_to_death', 'days_to_last_followup', 'age_at_initial_pathologic_diagnosis', 'vital_status')
+  }
+}
+
 subset_and_clean_clinical_data = function(clin, cols_to_keep, cancer_type){
   clin = subset(clin, select = colnames(clin) %in% c('bcr_patient_barcode', cols_to_keep))
   clin$bcr_patient_barcode = format_tcga_barcodes(clin$bcr_patient_barcode)
@@ -69,16 +79,8 @@ gene_sub_colnames = function(gene_sub){
   return(gene_sub[-1, ])
 }
 
+
 make_table = function(cancer_type, genes, out_dir = getwd(), all_exp_file = NA, barcodes = 'all', clin_cols_to_keep = c('days_to_death', 'days_to_last_followup', 'pathologic_stage', 'age_at_initial_pathologic_diagnosis', 'vital_status')){
-
-  #prad stage grading is different than ALL THE OTHERS. THANKS PRAD.
-  if(cancer_type == 'prad'){
-    clin_cols_to_keep  = str_replace(clin_cols_to_keep, 'pathologic_stage', 'pathologic_T')
-  }
-  else if(cancer_type == 'gbm' | cancer_type == 'lgg'){
-    clin_cols_to_keep = c('days_to_death', 'days_to_last_followup', 'age_at_initial_pathologic_diagnosis', 'vital_status')
-  }
-
 
   if(is.na(all_exp_file)){
     # compile all tables for cancer type
@@ -103,7 +105,9 @@ make_table = function(cancer_type, genes, out_dir = getwd(), all_exp_file = NA, 
   sub_filename = paste(out_dir, '/', cancer_type, '_subset_for_', paste(genes, collapse='_'), '.txt', sep='')
   write.table(gene_sub, sub_filename, sep='\t', row.names = F, quote = F)
 
+
   clin = load_clinical_table(cancer_type)
+  clin_cols_to_keep = check_clin_cols(cancer_type, clin_cols_to_keep)
   colnames(clin) = normalize_clin_headers(colnames(clin))
   clin = subset_and_clean_clinical_data(clin, clin_cols_to_keep, cancer_type)
   m = merge(gene_sub, clin, by='tcga_id')
