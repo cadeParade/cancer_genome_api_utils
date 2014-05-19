@@ -91,3 +91,19 @@ high_or_low = function(cutoff, margin, vec){
   })
   return(h_o_l)
 }
+
+normalize_clin_headers = function(col_headers){
+  new_headers = unlist(sapply(col_headers, function(h){
+    #if header ends with days_to, put it at the beginning
+    if(str_detect(h, '_days_to')){
+      x = str_replace(h, '_days_to', '')
+      h = paste('days_to', x, sep='_')
+    }
+    #change contact to followup, not sure if this is legit...
+    if(str_detect(h, 'last_contact')){
+      h = str_replace(h, 'contact', 'followup')
+    }
+    return(h)
+  }))
+  return(new_headers)
+}
